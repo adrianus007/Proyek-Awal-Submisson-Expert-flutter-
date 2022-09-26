@@ -1,0 +1,55 @@
+import 'package:ditonton/common/state_enum.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../provider_tv/on_air_notifier_tv.dart';
+import '../widgets/tv_card_list.dart';
+
+class OnAirPage extends StatefulWidget {
+  static const ROUTE_NAME = '/on_air-tv';
+
+  @override
+  _OnAirPageState createState() => _OnAirPageState();
+}
+
+class _OnAirPageState extends State<OnAirPage> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<OnAirNotifier>(context, listen: false).fetchOnAirTv());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Sedang Tayang'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Consumer<OnAirNotifier>(
+          builder: (context, data, child) {
+            if (data.state == RequestState.Loading) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (data.state == RequestState.Loaded) {
+              return ListView.builder(
+                itemBuilder: (context, index) {
+                  final tv = data.tv[index];
+                  return TvCard(tv);
+                },
+                itemCount: data.tv.length,
+              );
+            } else {
+              return Center(
+                key: Key('error_message'),
+                child: Text(data.message),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
